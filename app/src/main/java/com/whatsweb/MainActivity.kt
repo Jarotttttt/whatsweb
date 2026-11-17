@@ -213,12 +213,22 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
-        val promptInfo = BiometricPrompt.PromptInfo.Builder()
+        val promptBuilder = BiometricPrompt.PromptInfo.Builder()
             .setTitle(getString(R.string.biometric_prompt_title))
             .setSubtitle(getString(R.string.biometric_prompt_subtitle))
-            .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.DEVICE_CREDENTIAL)
-            .build()
 
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            promptBuilder.setAllowedAuthenticators(
+                BiometricManager.Authenticators.BIOMETRIC_STRONG or
+                        BiometricManager.Authenticators.BIOMETRIC_WEAK or
+                        BiometricManager.Authenticators.DEVICE_CREDENTIAL
+            )
+        } else {
+            @Suppress("DEPRECATION")
+            promptBuilder.setDeviceCredentialAllowed(true)
+        }
+
+        val promptInfo = promptBuilder.build()
         biometricPrompt.authenticate(promptInfo)
     }
 
@@ -412,9 +422,7 @@ class MainActivity : AppCompatActivity() {
                 true
             }
             R.id.action_biometric_lock -> {
-                val authenticators = BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.DEVICE_CREDENTIAL
-                val canAuth = BiometricManager.from(this).canAuthenticate(authenticators)
-                if (canAuth == BiometricManager.BIOMETRIC_SUCCESS) {
+                if (BiometricLockHelper.canAuthenticate(this)) {
                     val newState = !isBiometricEnabled()
                     setBiometricEnabled(newState)
                     val toastMsg = if (newState) R.string.biometric_enabled_toast else R.string.biometric_disabled_toast
