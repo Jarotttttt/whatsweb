@@ -139,6 +139,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupToolbar() {
         setSupportActionBar(toolbar)
+        toolbar.overflowIcon = ContextCompat.getDrawable(this, R.drawable.ic_more_vert)
     }
 
     private fun setupBackPress() {

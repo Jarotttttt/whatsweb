@@ -1,7 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- WhatsApp Brand Colors -->
     <color name="whatsapp_green">#075E54</color>
     <color name="whatsapp_green_dark">#054C44</color>
     <color name="whatsapp_teal">#128C7E</color>
     <color name="whatsapp_light_green">#25D366</color>
+    <color name="whatsapp_chat_bg">#ECE5DD</color>
+
+    <!-- Dark Mode Colors -->
+    <color name="whatsapp_dark_background">#121B22</color>
+    <color name="whatsapp_dark_surface">#1F2C34</color>
+    <color name="whatsapp_dark_header">#2A3942</color>
+    <color name="whatsapp_dark_teal">#00A884</color>
+    <color name="whatsapp_dark_accent">#00A884</color>
+    <color name="whatsapp_dark_text_primary">#E9EDEF</color>
+    <color name="whatsapp_dark_text_secondary">#8696A0</color>
+
+    <!-- Common Colors -->
     <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
 </resources>

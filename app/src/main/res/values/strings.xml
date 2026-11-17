@@ -1,5 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">WhatsWeb</string>
+    <string name="app_description">WhatsApp Web Desktop Client for Android</string>
     <string name="action_refresh">Refresh</string>
     <string name="action_clear_session">Log out / Clear Session</string>
     <string name="error_offline">Unable to load WhatsApp Web. Please check your internet connection.</string>
