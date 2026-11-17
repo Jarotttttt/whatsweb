@@ -85,6 +85,23 @@ open class WaWebViewClient(
                 }, true);
             })();
         """
+
+        /**
+         * Injects a desktop viewport meta tag to instruct Blink to render the page at
+         * 1024px layout width and scale it down to fit the full device screen width,
+         * matching the "Desktop site" behavior in mobile browsers (no horizontal panning).
+         */
+        const val VIEWPORT_FIT_SCRIPT = """
+            (function() {
+                var meta = document.querySelector('meta[name="viewport"]');
+                if (!meta) {
+                    meta = document.createElement('meta');
+                    meta.name = 'viewport';
+                    document.head.appendChild(meta);
+                }
+                meta.setAttribute('content', 'width=1024, user-scalable=yes');
+            })();
+        """
     }
 
     override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
@@ -92,10 +109,18 @@ open class WaWebViewClient(
         onPageLoadingState?.invoke(true)
     }
 
+    override fun onPageCommitVisible(view: WebView?, url: String?) {
+        super.onPageCommitVisible(view, url)
+        if (url != null && isAllowedWhatsAppUrl(url)) {
+            view?.evaluateJavascript(VIEWPORT_FIT_SCRIPT, null)
+        }
+    }
+
     override fun onPageFinished(view: WebView?, url: String?) {
         super.onPageFinished(view, url)
         onPageLoadingState?.invoke(false)
         if (url != null && isAllowedWhatsAppUrl(url)) {
+            view?.evaluateJavascript(VIEWPORT_FIT_SCRIPT, null)
             view?.evaluateJavascript(DOM_STABILIZER_SCRIPT, null)
         }
     }

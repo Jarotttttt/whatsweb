@@ -84,4 +84,12 @@ class WaWebViewClientTest {
         assertTrue(script.contains("stopPropagation"))
         assertTrue(script.contains("click"))
     }
+
+    @Test
+    fun testViewportFitScriptConfiguredForDesktop1024() {
+        val script = WaWebViewClient.VIEWPORT_FIT_SCRIPT
+        assertTrue(script.contains("width=1024"))
+        assertTrue(script.contains("user-scalable=yes"))
+        assertTrue(script.contains("document.head.appendChild(meta)"))
+    }
 }
