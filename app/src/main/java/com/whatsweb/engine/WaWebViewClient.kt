@@ -74,6 +74,9 @@ open class WaWebViewClient(
 
     override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
         val url = request?.url?.toString() ?: return false
+        if (!request.isForMainFrame && !isExternalIntentScheme(url)) {
+            return false
+        }
         return handleUrlLoading(view, url)
     }
 

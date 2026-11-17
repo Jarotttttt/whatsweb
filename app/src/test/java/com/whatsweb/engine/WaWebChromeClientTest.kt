@@ -53,6 +53,19 @@ class WaWebChromeClientTest {
     }
 
     @Test
+    fun testPermissionRequestCanceledCallbackInvoked() {
+        var canceledInvoked = false
+        val client = WaWebChromeClient(
+            onPermissionRequestCanceled = {
+                canceledInvoked = true
+            }
+        )
+
+        client.onPermissionRequestCanceled(null)
+        assertTrue(canceledInvoked)
+    }
+
+    @Test
     fun testMediaCaptureResourceDetection() {
         assertTrue(
             WaWebChromeClient.hasMediaCaptureResource(

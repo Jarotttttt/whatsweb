@@ -13,7 +13,8 @@ import android.webkit.WebView
 open class WaWebChromeClient(
     var onProgressChanged: ((progress: Int) -> Unit)? = null,
     var onFileChooser: ((filePathCallback: ValueCallback<Array<Uri>>?, fileChooserParams: FileChooserParams?) -> Boolean)? = null,
-    var onPermissionRequest: ((request: PermissionRequest?) -> Unit)? = null
+    var onPermissionRequest: ((request: PermissionRequest?) -> Unit)? = null,
+    var onPermissionRequestCanceled: ((request: PermissionRequest?) -> Unit)? = null
 ) : WebChromeClient() {
 
     override fun onProgressChanged(view: WebView?, newProgress: Int) {
@@ -35,6 +36,14 @@ open class WaWebChromeClient(
             onPermissionRequest?.invoke(request)
         } else {
             super.onPermissionRequest(request)
+        }
+    }
+
+    override fun onPermissionRequestCanceled(request: PermissionRequest?) {
+        if (onPermissionRequestCanceled != null) {
+            onPermissionRequestCanceled?.invoke(request)
+        } else {
+            super.onPermissionRequestCanceled(request)
         }
     }
 

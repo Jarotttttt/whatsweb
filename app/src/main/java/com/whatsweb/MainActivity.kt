@@ -15,6 +15,7 @@ import android.webkit.CookieManager
 import android.webkit.PermissionRequest
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
+import android.webkit.WebStorage
 import android.webkit.WebView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -106,6 +107,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         initViews()
+        swipeRefresh.isEnabled = false
         setupToolbar()
         setupBackPress()
         configureWebView()
@@ -208,6 +210,11 @@ class MainActivity : AppCompatActivity() {
             },
             onPermissionRequest = { request ->
                 handlePermissionRequest(request)
+            },
+            onPermissionRequestCanceled = { request ->
+                if (request == null || pendingPermissionRequest == request) {
+                    pendingPermissionRequest = null
+                }
             }
         )
     }
@@ -280,6 +287,7 @@ class MainActivity : AppCompatActivity() {
             .setTitle(R.string.dialog_clear_session_title)
             .setMessage(R.string.dialog_clear_session_message)
             .setPositiveButton(R.string.dialog_clear_session_confirm) { _, _ ->
+                WebStorage.getInstance().deleteAllData()
                 val cookieManager = CookieManager.getInstance()
                 cookieManager.removeAllCookies {
                     cookieManager.flush()
@@ -319,6 +327,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
+        CookieManager.getInstance().flush()
         webView.onPause()
     }
 
@@ -329,7 +338,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
         super.onRestoreInstanceState(savedInstanceState)
-        webView.restoreState(savedInstanceState)
     }
 
     override fun onDestroy() {
