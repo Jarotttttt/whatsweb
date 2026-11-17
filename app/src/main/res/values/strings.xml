@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">WhatsWeb</string>
+    <string name="action_refresh">Refresh</string>
+    <string name="action_clear_session">Log out / Clear Session</string>
+    <string name="error_offline">Unable to load WhatsApp Web. Please check your internet connection.</string>
+    <string name="retry">Retry</string>
+</resources>

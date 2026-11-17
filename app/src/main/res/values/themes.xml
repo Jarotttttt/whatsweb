@@ -1,0 +1,7 @@
+<resources>
+    <style name="Theme.WhatsWeb" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/whatsapp_teal</item>
+        <item name="colorPrimaryDark">@color/whatsapp_green</item>
+        <item name="colorSecondary">@color/whatsapp_light_green</item>
+    </style>
+</resources>

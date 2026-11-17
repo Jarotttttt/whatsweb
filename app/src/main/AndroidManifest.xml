@@ -13,7 +13,8 @@
         android:icon="@android:drawable/sym_def_app_icon"
         android:label="WhatsWeb"
         android:roundIcon="@android:drawable/sym_def_app_icon"
-        android:supportsRtl="true">
+        android:supportsRtl="true"
+        android:theme="@style/Theme.WhatsWeb">
     </application>
 
 </manifest>
