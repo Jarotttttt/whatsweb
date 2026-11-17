@@ -17,13 +17,13 @@ class BiometricLockHelperTest {
     }
 
     @Test
-    fun shouldLockOnColdStartWhenEnabled() {
+    fun shouldNotLockWhenNeverBackgrounded() {
         val shouldLock = BiometricLockHelper.shouldLock(
             enabled = true,
             lastBackgroundTime = 0L,
             currentTime = 100000L
         )
-        assertTrue(shouldLock)
+        assertFalse(shouldLock)
     }
 
     @Test

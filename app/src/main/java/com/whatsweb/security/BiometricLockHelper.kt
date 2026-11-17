@@ -17,7 +17,7 @@ object BiometricLockHelper {
         timeoutMs: Long = DEFAULT_TIMEOUT_MS
     ): Boolean {
         if (!enabled) return false
-        if (lastBackgroundTime <= 0L) return true
+        if (lastBackgroundTime <= 0L) return false
         val elapsed = currentTime - lastBackgroundTime
         return elapsed > timeoutMs
     }

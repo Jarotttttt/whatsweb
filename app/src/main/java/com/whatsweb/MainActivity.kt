@@ -51,6 +51,7 @@ class MainActivity : AppCompatActivity() {
 
     private var lastBackgroundTime: Long = 0L
     private var isAppLocked: Boolean = false
+    private var isBiometricPromptActive: Boolean = false
 
     private var pendingFilePathCallback: ValueCallback<Array<Uri>>? = null
     private var pendingPermissionRequest: PermissionRequest? = null
@@ -130,6 +131,10 @@ class MainActivity : AppCompatActivity() {
             }
             webView.restoreState(savedInstanceState)
         } else {
+            if (isBiometricEnabled()) {
+                isAppLocked = true
+                lockOverlay.visibility = View.VISIBLE
+            }
             webView.loadUrl(WaWebConfig.WHATSAPP_WEB_URL)
         }
     }
@@ -193,10 +198,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showBiometricPrompt() {
+        if (isBiometricPromptActive) return
+        isBiometricPromptActive = true
+
         val executor = ContextCompat.getMainExecutor(this)
         val biometricPrompt = BiometricPrompt(this, executor, object : BiometricPrompt.AuthenticationCallback() {
             override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
                 super.onAuthenticationSucceeded(result)
+                isBiometricPromptActive = false
                 isAppLocked = false
                 lockOverlay.visibility = View.GONE
                 lastBackgroundTime = 0L
@@ -204,12 +213,17 @@ class MainActivity : AppCompatActivity() {
 
             override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
                 super.onAuthenticationError(errorCode, errString)
-                lockOverlay.visibility = View.VISIBLE
+                isBiometricPromptActive = false
+                if (isAppLocked) {
+                    lockOverlay.visibility = View.VISIBLE
+                }
             }
 
             override fun onAuthenticationFailed() {
                 super.onAuthenticationFailed()
-                lockOverlay.visibility = View.VISIBLE
+                if (isAppLocked) {
+                    lockOverlay.visibility = View.VISIBLE
+                }
             }
         })
 
@@ -232,18 +246,65 @@ class MainActivity : AppCompatActivity() {
         biometricPrompt.authenticate(promptInfo)
     }
 
+    private fun verifyAndEnableBiometric() {
+        if (isBiometricPromptActive) return
+        isBiometricPromptActive = true
+
+        val executor = ContextCompat.getMainExecutor(this)
+        val prompt = BiometricPrompt(this, executor, object : BiometricPrompt.AuthenticationCallback() {
+            override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                super.onAuthenticationSucceeded(result)
+                isBiometricPromptActive = false
+                setBiometricEnabled(true)
+                Toast.makeText(this@MainActivity, R.string.biometric_enabled_toast, Toast.LENGTH_SHORT).show()
+                invalidateOptionsMenu()
+            }
+
+            override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                super.onAuthenticationError(errorCode, errString)
+                isBiometricPromptActive = false
+            }
+
+            override fun onAuthenticationFailed() {
+                super.onAuthenticationFailed()
+            }
+        })
+
+        val promptBuilder = BiometricPrompt.PromptInfo.Builder()
+            .setTitle(getString(R.string.biometric_prompt_title))
+            .setSubtitle(getString(R.string.biometric_prompt_subtitle))
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            promptBuilder.setAllowedAuthenticators(
+                BiometricManager.Authenticators.BIOMETRIC_STRONG or
+                        BiometricManager.Authenticators.BIOMETRIC_WEAK or
+                        BiometricManager.Authenticators.DEVICE_CREDENTIAL
+            )
+        } else {
+            @Suppress("DEPRECATION")
+            promptBuilder.setDeviceCredentialAllowed(true)
+        }
+
+        prompt.authenticate(promptBuilder.build())
+    }
+
     override fun onStart() {
         super.onStart()
+        if (isBiometricPromptActive) return
+
         if (isAppLocked || BiometricLockHelper.shouldLock(isBiometricEnabled(), lastBackgroundTime, System.currentTimeMillis())) {
             isAppLocked = true
             lockOverlay.visibility = View.VISIBLE
             showBiometricPrompt()
+        } else {
+            isAppLocked = false
+            lockOverlay.visibility = View.GONE
         }
     }
 
     override fun onStop() {
         super.onStop()
-        if (isBiometricEnabled()) {
+        if (isBiometricEnabled() && !isBiometricPromptActive) {
             lastBackgroundTime = System.currentTimeMillis()
         }
     }
@@ -423,19 +484,15 @@ class MainActivity : AppCompatActivity() {
             }
             R.id.action_biometric_lock -> {
                 if (BiometricLockHelper.canAuthenticate(this)) {
-                    val newState = !isBiometricEnabled()
-                    setBiometricEnabled(newState)
-                    val toastMsg = if (newState) R.string.biometric_enabled_toast else R.string.biometric_disabled_toast
-                    Toast.makeText(this, toastMsg, Toast.LENGTH_SHORT).show()
-                    invalidateOptionsMenu()
-                } else {
-                    if (isBiometricEnabled()) {
+                    if (!isBiometricEnabled()) {
+                        verifyAndEnableBiometric()
+                    } else {
                         setBiometricEnabled(false)
                         Toast.makeText(this, R.string.biometric_disabled_toast, Toast.LENGTH_SHORT).show()
                         invalidateOptionsMenu()
-                    } else {
-                        Toast.makeText(this, R.string.biometric_not_supported, Toast.LENGTH_LONG).show()
                     }
+                } else {
+                    Toast.makeText(this, R.string.biometric_not_supported, Toast.LENGTH_LONG).show()
                 }
                 true
             }
