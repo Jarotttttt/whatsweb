@@ -14,6 +14,12 @@
         app:showAsAction="never" />
 
     <item
+        android:id="@+id/action_desktop_mode"
+        android:title="@string/menu_desktop_mode"
+        android:checkable="true"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/action_biometric_lock"
         android:title="@string/menu_biometric_lock"
         android:checkable="true"
