@@ -26,7 +26,4 @@
     <string name="about_dialog_title">About WhatsWeb</string>
     <string name="about_dialog_message"><![CDATA[WhatsWeb is a lightweight native desktop client for WhatsApp Web on Android. It provides desktop user-agent spoofing, secure biometric lock, and complete media support for seamless multi-account messaging.\n\nVersion: %1$s\nAuthor: %2$s]]></string>
 
-    <string name="menu_desktop_mode">Desktop Site</string>
-    <string name="toast_desktop_mode_enabled">Desktop mode enabled</string>
-    <string name="toast_desktop_mode_disabled">Mobile mode enabled</string>
 </resources>

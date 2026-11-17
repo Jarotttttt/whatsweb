@@ -33,7 +33,6 @@ import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.progressindicator.LinearProgressIndicator
-import com.whatsweb.engine.DesktopModeHelper
 import com.whatsweb.engine.WaWebChromeClient
 import com.whatsweb.engine.WaWebConfig
 import com.whatsweb.engine.WaWebViewClient
@@ -51,7 +50,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var lockOverlay: View
     private lateinit var btnUnlockBiometric: MaterialButton
 
-    private var defaultMobileUserAgent: String = ""
     private var lastBackgroundTime: Long = 0L
     private var isAppLocked: Boolean = false
     private var isBiometricPromptActive: Boolean = false
@@ -314,9 +312,6 @@ class MainActivity : AppCompatActivity() {
 
     @SuppressLint("SetJavaScriptEnabled")
     private fun configureWebView() {
-        defaultMobileUserAgent = webView.settings.userAgentString.takeIf { it.isNotBlank() }
-            ?: WebSettings.getDefaultUserAgent(this)
-
         webView.settings.apply {
             javaScriptEnabled = true
             domStorageEnabled = true
@@ -329,9 +324,10 @@ class MainActivity : AppCompatActivity() {
             mediaPlaybackRequiresUserGesture = false
             allowFileAccess = true
             allowContentAccess = true
+            userAgentString = WaWebConfig.DESKTOP_USER_AGENT
+            useWideViewPort = true
+            loadWithOverviewMode = true
         }
-
-        applyDesktopModeSettings(DesktopModeHelper.isDesktopModeEnabled(this))
 
         webView.isFocusable = true
         webView.isFocusableInTouchMode = true
@@ -383,14 +379,6 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         )
-    }
-
-    private fun applyDesktopModeSettings(isDesktop: Boolean) {
-        webView.settings.apply {
-            userAgentString = DesktopModeHelper.resolveUserAgent(isDesktop, defaultMobileUserAgent)
-            useWideViewPort = isDesktop
-            loadWithOverviewMode = isDesktop
-        }
     }
 
     private fun handleFileChooser(
@@ -498,7 +486,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onPrepareOptionsMenu(menu: Menu): Boolean {
         menu.findItem(R.id.action_biometric_lock)?.isChecked = isBiometricEnabled()
-        menu.findItem(R.id.action_desktop_mode)?.isChecked = DesktopModeHelper.isDesktopModeEnabled(this)
         return super.onPrepareOptionsMenu(menu)
     }
 
@@ -510,16 +497,6 @@ class MainActivity : AppCompatActivity() {
             }
             R.id.action_clear_session -> {
                 showClearSessionDialog()
-                true
-            }
-            R.id.action_desktop_mode -> {
-                val newMode = !DesktopModeHelper.isDesktopModeEnabled(this)
-                DesktopModeHelper.setDesktopModeEnabled(this, newMode)
-                applyDesktopModeSettings(newMode)
-                webView.reload()
-                val toastMsg = if (newMode) R.string.toast_desktop_mode_enabled else R.string.toast_desktop_mode_disabled
-                Toast.makeText(this, toastMsg, Toast.LENGTH_SHORT).show()
-                invalidateOptionsMenu()
                 true
             }
             R.id.action_biometric_lock -> {
