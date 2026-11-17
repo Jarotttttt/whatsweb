@@ -169,7 +169,16 @@ class MainActivity : AppCompatActivity() {
             displayZoomControls = false
             useWideViewPort = true
             loadWithOverviewMode = true
+            loadsImagesAutomatically = true
+            mixedContentMode = android.webkit.WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
+            mediaPlaybackRequiresUserGesture = false
+            allowFileAccess = true
+            allowContentAccess = true
         }
+
+        webView.isFocusable = true
+        webView.isFocusableInTouchMode = true
+        webView.setLayerType(View.LAYER_TYPE_HARDWARE, null)
 
         val cookieManager = CookieManager.getInstance()
         cookieManager.setAcceptCookie(true)

@@ -76,4 +76,12 @@ class WaWebViewClientTest {
         val handled = client.handleUrlLoading(null, "https://web.whatsapp.com")
         assertFalse(handled)
     }
+
+    @Test
+    fun testDomStabilizerScriptContent() {
+        val script = WaWebViewClient.DOM_STABILIZER_SCRIPT
+        assertTrue(script.contains("document.body.contains"))
+        assertTrue(script.contains("stopPropagation"))
+        assertTrue(script.contains("click"))
+    }
 }

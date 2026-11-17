@@ -60,6 +60,31 @@ open class WaWebViewClient(
                     lower.startsWith("sms:") ||
                     lower.startsWith("geo:")
         }
+
+        /**
+         * JavaScript injected into WhatsApp Web to stabilize touch interactions and
+         * prevent ghost clicks on detached DOM nodes (caused by React re-renders)
+         * from triggering WhatsApp Web's click-outside dismissal of the emoji/sticker drawer.
+         */
+        const val DOM_STABILIZER_SCRIPT = """
+            (function() {
+                if (window.__waTouchStabilized) return;
+                window.__waTouchStabilized = true;
+
+                // Stop ghost clicks on detached nodes from triggering click-outside dismissals
+                document.addEventListener('click', function(e) {
+                    if (e.target && !document.body.contains(e.target)) {
+                        e.stopPropagation();
+                    }
+                }, true);
+
+                document.addEventListener('pointerdown', function(e) {
+                    if (e.target && !document.body.contains(e.target)) {
+                        e.stopPropagation();
+                    }
+                }, true);
+            })();
+        """
     }
 
     override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
@@ -70,6 +95,14 @@ open class WaWebViewClient(
     override fun onPageFinished(view: WebView?, url: String?) {
         super.onPageFinished(view, url)
         onPageLoadingState?.invoke(false)
+        if (url != null && isAllowedWhatsAppUrl(url)) {
+            view?.evaluateJavascript(DOM_STABILIZER_SCRIPT, null)
+        }
+    }
+
+    override fun onRenderProcessGone(view: WebView?, detail: android.webkit.RenderProcessGoneDetail?): Boolean {
+        Log.w(TAG, "WebView render process gone. Crashed: ${detail?.didCrash()}")
+        return true
     }
 
     override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
