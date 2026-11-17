@@ -477,9 +477,9 @@ class MainActivity : AppCompatActivity() {
 
     private fun showAboutDialog() {
         val appVersion = try {
-            packageManager.getPackageInfo(packageName, 0).versionName ?: "1.2.0"
+            packageManager.getPackageInfo(packageName, 0).versionName ?: "1.3.0"
         } catch (e: Exception) {
-            "1.2.0"
+            "1.3.0"
         }
         val message = getString(R.string.about_dialog_message, appVersion, "Xyuraa")
 
