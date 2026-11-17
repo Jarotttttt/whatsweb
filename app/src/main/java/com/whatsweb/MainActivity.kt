@@ -462,6 +462,22 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
+    private fun showAboutDialog() {
+        val appVersion = try {
+            packageManager.getPackageInfo(packageName, 0).versionName ?: "1.2.0"
+        } catch (e: Exception) {
+            "1.2.0"
+        }
+        val message = getString(R.string.about_dialog_message, appVersion, "Xyuraa")
+
+        MaterialAlertDialogBuilder(this)
+            .setIcon(R.mipmap.ic_launcher)
+            .setTitle(R.string.about_dialog_title)
+            .setMessage(message)
+            .setPositiveButton(R.string.dialog_close, null)
+            .show()
+    }
+
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_toolbar, menu)
         return true
@@ -494,6 +510,10 @@ class MainActivity : AppCompatActivity() {
                 } else {
                     Toast.makeText(this, R.string.biometric_not_supported, Toast.LENGTH_LONG).show()
                 }
+                true
+            }
+            R.id.action_about -> {
+                showAboutDialog()
                 true
             }
             else -> super.onOptionsItemSelected(item)

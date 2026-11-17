@@ -4,20 +4,25 @@
     <string name="app_description">WhatsApp Web Desktop Client for Android</string>
     <string name="action_refresh">Refresh</string>
     <string name="action_clear_session">Log out / Clear Session</string>
+    <string name="action_about">About</string>
     <string name="error_offline">Unable to load WhatsApp Web. Please check your internet connection.</string>
     <string name="retry">Retry</string>
     <string name="dialog_clear_session_title">Log Out</string>
     <string name="dialog_clear_session_message">Are you sure you want to log out and clear all session data?</string>
     <string name="dialog_clear_session_confirm">Log Out</string>
     <string name="dialog_cancel">Cancel</string>
+    <string name="dialog_close">Close</string>
 
-    <string name="menu_biometric_lock">Kunci Aplikasi (Sidik Jari)</string>
-    <string name="lock_overlay_title">WhatsWeb Terkunci</string>
-    <string name="lock_overlay_subtitle">Buka kunci dengan sidik jari atau PIN perangkat</string>
-    <string name="btn_unlock">Buka Kunci</string>
-    <string name="biometric_prompt_title">Verifikasi Identitas</string>
-    <string name="biometric_prompt_subtitle">Pindai sidik jari atau gunakan PIN untuk mengakses WhatsWeb</string>
-    <string name="biometric_not_supported">Perangkat tidak mendukung biometrik atau belum mengatur PIN/Pola</string>
-    <string name="biometric_enabled_toast">Kunci aplikasi diaktifkan (Timeout 1 menit)</string>
-    <string name="biometric_disabled_toast">Kunci aplikasi dinonaktifkan</string>
+    <string name="menu_biometric_lock">App Lock (Biometric / PIN)</string>
+    <string name="lock_overlay_title">WhatsWeb is Locked</string>
+    <string name="lock_overlay_subtitle">Unlock using fingerprint, face, or device PIN</string>
+    <string name="btn_unlock">Unlock</string>
+    <string name="biometric_prompt_title">Authentication Required</string>
+    <string name="biometric_prompt_subtitle">Scan fingerprint or enter PIN to access WhatsWeb</string>
+    <string name="biometric_not_supported">Biometric authentication or screen lock is not set up on this device</string>
+    <string name="biometric_enabled_toast">App lock enabled (1-minute timeout)</string>
+    <string name="biometric_disabled_toast">App lock disabled</string>
+
+    <string name="about_dialog_title">About WhatsWeb</string>
+    <string name="about_dialog_message"><![CDATA[WhatsWeb is a lightweight native desktop client for WhatsApp Web on Android. It provides desktop user-agent spoofing, secure biometric lock, and complete media support for seamless multi-account messaging.\n\nVersion: %1$s\nAuthor: %2$s]]></string>
 </resources>
