@@ -11,15 +11,27 @@ android {
         applicationId = "com.whatsweb"
         minSdk = 24
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 3
+        versionName = "1.2.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs {
+        create("release") {
+            storeFile = file("${rootDir}/whatsweb-release.jks")
+            storePassword = "whatsweb123"
+            keyAlias = "whatsweb"
+            keyPassword = "whatsweb123"
+            enableV1Signing = true
+            enableV2Signing = true
+        }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
