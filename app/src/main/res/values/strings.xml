@@ -10,4 +10,14 @@
     <string name="dialog_clear_session_message">Are you sure you want to log out and clear all session data?</string>
     <string name="dialog_clear_session_confirm">Log Out</string>
     <string name="dialog_cancel">Cancel</string>
+
+    <string name="menu_biometric_lock">Kunci Aplikasi (Sidik Jari)</string>
+    <string name="lock_overlay_title">WhatsWeb Terkunci</string>
+    <string name="lock_overlay_subtitle">Buka kunci dengan sidik jari atau PIN perangkat</string>
+    <string name="btn_unlock">Buka Kunci</string>
+    <string name="biometric_prompt_title">Verifikasi Identitas</string>
+    <string name="biometric_prompt_subtitle">Pindai sidik jari atau gunakan PIN untuk mengakses WhatsWeb</string>
+    <string name="biometric_not_supported">Perangkat tidak mendukung biometrik atau belum mengatur PIN/Pola</string>
+    <string name="biometric_enabled_toast">Kunci aplikasi diaktifkan (Timeout 1 menit)</string>
+    <string name="biometric_disabled_toast">Kunci aplikasi dinonaktifkan</string>
 </resources>

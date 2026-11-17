@@ -13,4 +13,10 @@
         android:title="@string/action_clear_session"
         app:showAsAction="never" />
 
+    <item
+        android:id="@+id/action_biometric_lock"
+        android:title="@string/menu_biometric_lock"
+        android:checkable="true"
+        app:showAsAction="never" />
+
 </menu>

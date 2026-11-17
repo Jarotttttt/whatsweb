@@ -4,6 +4,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.ActivityNotFoundException
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -19,9 +20,12 @@ import android.webkit.WebStorage
 import android.webkit.WebView
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.biometric.BiometricManager
+import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.google.android.material.appbar.MaterialToolbar
@@ -31,6 +35,7 @@ import com.google.android.material.progressindicator.LinearProgressIndicator
 import com.whatsweb.engine.WaWebChromeClient
 import com.whatsweb.engine.WaWebConfig
 import com.whatsweb.engine.WaWebViewClient
+import com.whatsweb.security.BiometricLockHelper
 
 class MainActivity : AppCompatActivity() {
 
@@ -41,6 +46,11 @@ class MainActivity : AppCompatActivity() {
     private lateinit var errorLayout: LinearLayout
     private lateinit var tvErrorMessage: TextView
     private lateinit var btnRetry: MaterialButton
+    private lateinit var lockOverlay: View
+    private lateinit var btnUnlockBiometric: MaterialButton
+
+    private var lastBackgroundTime: Long = 0L
+    private var isAppLocked: Boolean = false
 
     private var pendingFilePathCallback: ValueCallback<Array<Uri>>? = null
     private var pendingPermissionRequest: PermissionRequest? = null
@@ -113,6 +123,11 @@ class MainActivity : AppCompatActivity() {
         configureWebView()
 
         if (savedInstanceState != null) {
+            lastBackgroundTime = savedInstanceState.getLong(KEY_LAST_BACKGROUND_TIME, 0L)
+            isAppLocked = savedInstanceState.getBoolean(KEY_IS_APP_LOCKED, false)
+            if (isAppLocked) {
+                lockOverlay.visibility = View.VISIBLE
+            }
             webView.restoreState(savedInstanceState)
         } else {
             webView.loadUrl(WaWebConfig.WHATSAPP_WEB_URL)
@@ -127,6 +142,8 @@ class MainActivity : AppCompatActivity() {
         errorLayout = findViewById(R.id.errorLayout)
         tvErrorMessage = findViewById(R.id.tvErrorMessage)
         btnRetry = findViewById(R.id.btnRetry)
+        lockOverlay = findViewById(R.id.lockOverlay)
+        btnUnlockBiometric = findViewById(R.id.btnUnlockBiometric)
 
         swipeRefresh.setOnRefreshListener {
             webView.reload()
@@ -136,6 +153,10 @@ class MainActivity : AppCompatActivity() {
             errorLayout.visibility = View.GONE
             swipeRefresh.visibility = View.VISIBLE
             webView.loadUrl(WaWebConfig.WHATSAPP_WEB_URL)
+        }
+
+        btnUnlockBiometric.setOnClickListener {
+            showBiometricPrompt()
         }
     }
 
@@ -147,6 +168,10 @@ class MainActivity : AppCompatActivity() {
     private fun setupBackPress() {
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
+                if (isAppLocked) {
+                    finish()
+                    return
+                }
                 if (webView.canGoBack()) {
                     webView.goBack()
                 } else {
@@ -155,6 +180,62 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         })
+    }
+
+    private fun isBiometricEnabled(): Boolean {
+        val prefs = getSharedPreferences(BiometricLockHelper.PREFS_NAME, Context.MODE_PRIVATE)
+        return prefs.getBoolean(BiometricLockHelper.PREF_BIOMETRIC_ENABLED, false)
+    }
+
+    private fun setBiometricEnabled(enabled: Boolean) {
+        val prefs = getSharedPreferences(BiometricLockHelper.PREFS_NAME, Context.MODE_PRIVATE)
+        prefs.edit().putBoolean(BiometricLockHelper.PREF_BIOMETRIC_ENABLED, enabled).apply()
+    }
+
+    private fun showBiometricPrompt() {
+        val executor = ContextCompat.getMainExecutor(this)
+        val biometricPrompt = BiometricPrompt(this, executor, object : BiometricPrompt.AuthenticationCallback() {
+            override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                super.onAuthenticationSucceeded(result)
+                isAppLocked = false
+                lockOverlay.visibility = View.GONE
+                lastBackgroundTime = 0L
+            }
+
+            override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                super.onAuthenticationError(errorCode, errString)
+                lockOverlay.visibility = View.VISIBLE
+            }
+
+            override fun onAuthenticationFailed() {
+                super.onAuthenticationFailed()
+                lockOverlay.visibility = View.VISIBLE
+            }
+        })
+
+        val promptInfo = BiometricPrompt.PromptInfo.Builder()
+            .setTitle(getString(R.string.biometric_prompt_title))
+            .setSubtitle(getString(R.string.biometric_prompt_subtitle))
+            .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.DEVICE_CREDENTIAL)
+            .build()
+
+        biometricPrompt.authenticate(promptInfo)
+    }
+
+    override fun onStart() {
+        super.onStart()
+        if (isAppLocked || BiometricLockHelper.shouldLock(isBiometricEnabled(), lastBackgroundTime, System.currentTimeMillis())) {
+            isAppLocked = true
+            lockOverlay.visibility = View.VISIBLE
+            showBiometricPrompt()
+        }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        if (isBiometricEnabled()) {
+            lastBackgroundTime = System.currentTimeMillis()
+        }
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -315,6 +396,11 @@ class MainActivity : AppCompatActivity() {
         return true
     }
 
+    override fun onPrepareOptionsMenu(menu: Menu): Boolean {
+        menu.findItem(R.id.action_biometric_lock)?.isChecked = isBiometricEnabled()
+        return super.onPrepareOptionsMenu(menu)
+    }
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.action_refresh -> {
@@ -323,6 +409,26 @@ class MainActivity : AppCompatActivity() {
             }
             R.id.action_clear_session -> {
                 showClearSessionDialog()
+                true
+            }
+            R.id.action_biometric_lock -> {
+                val authenticators = BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.DEVICE_CREDENTIAL
+                val canAuth = BiometricManager.from(this).canAuthenticate(authenticators)
+                if (canAuth == BiometricManager.BIOMETRIC_SUCCESS) {
+                    val newState = !isBiometricEnabled()
+                    setBiometricEnabled(newState)
+                    val toastMsg = if (newState) R.string.biometric_enabled_toast else R.string.biometric_disabled_toast
+                    Toast.makeText(this, toastMsg, Toast.LENGTH_SHORT).show()
+                    invalidateOptionsMenu()
+                } else {
+                    if (isBiometricEnabled()) {
+                        setBiometricEnabled(false)
+                        Toast.makeText(this, R.string.biometric_disabled_toast, Toast.LENGTH_SHORT).show()
+                        invalidateOptionsMenu()
+                    } else {
+                        Toast.makeText(this, R.string.biometric_not_supported, Toast.LENGTH_LONG).show()
+                    }
+                }
                 true
             }
             else -> super.onOptionsItemSelected(item)
@@ -343,10 +449,17 @@ class MainActivity : AppCompatActivity() {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         webView.saveState(outState)
+        outState.putLong(KEY_LAST_BACKGROUND_TIME, lastBackgroundTime)
+        outState.putBoolean(KEY_IS_APP_LOCKED, isAppLocked)
     }
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
         super.onRestoreInstanceState(savedInstanceState)
+        lastBackgroundTime = savedInstanceState.getLong(KEY_LAST_BACKGROUND_TIME, 0L)
+        isAppLocked = savedInstanceState.getBoolean(KEY_IS_APP_LOCKED, false)
+        if (isAppLocked) {
+            lockOverlay.visibility = View.VISIBLE
+        }
     }
 
     override fun onDestroy() {
@@ -356,5 +469,10 @@ class MainActivity : AppCompatActivity() {
         pendingPermissionRequest = null
         webView.destroy()
         super.onDestroy()
+    }
+
+    companion object {
+        private const val KEY_LAST_BACKGROUND_TIME = "last_background_time"
+        private const val KEY_IS_APP_LOCKED = "is_app_locked"
     }
 }
